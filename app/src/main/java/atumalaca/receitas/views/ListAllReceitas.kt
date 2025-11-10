@@ -20,7 +20,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -31,34 +34,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import atumalaca.receitas.classes.Receita
+import atumalaca.receitas.repository.ReceitasRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListAllReceitas(navController: NavController) {
-    // Temporary local state for recipes (replace with Firebase later)
-    val receitas = rememberSaveable (saver = listSaver(
-        save = { list -> list.map { it.nome } },
-        restore = { list -> list.map { Receita(it, mapOf(), 0, "") } as SnapshotStateList<Receita>? }
-    )) {
-        mutableStateListOf<Receita>()
-    }
+    val repository = remember { ReceitasRepository() }
+    val receitas by repository.listarReceitas().collectAsState(initial = mutableListOf())
 
-    Scaffold (
+    Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Minhas Receitas") }
-            )
+            TopAppBar(title = { Text("Minhas Receitas") })
         },
         floatingActionButton = {
-            FloatingActionButton (onClick = {
-                navController.navigate("AddReceita")
-            }) {
+            FloatingActionButton(onClick = { navController.navigate("AddReceita") }) {
                 Icon(Icons.Default.Add, contentDescription = "Adicionar Receita")
             }
         }
     ) { padding ->
         if (receitas.isEmpty()) {
-            // Show placeholder if there are no recipes
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -68,18 +62,19 @@ fun ListAllReceitas(navController: NavController) {
                 Text("Nenhuma receita adicionada ainda ☕")
             }
         } else {
-            LazyColumn (
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
             ) {
                 items(receitas) { receita ->
-                    ReceitaCard(receita = receita){}
+                    ReceitaCard(receita = receita) { /* handle click */ }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun ReceitaCard(receita: Receita, onClick: () -> Unit) {
