@@ -6,8 +6,12 @@ open class Receita(
     val ingredientes: Map<String, String> = emptyMap(),
     val tempoPreparo: Int = 0,
     val modoPreparo: String = "",
-    var tipo: String = ""
+    val tipo: String = ""
 ) {
+    //método polimórfico
+    open fun descricaoEquipamentos(): String {
+        return "Esta é uma receita geral sem equipamento específico."
+    }
     //construtor vazio, teste do firestore
-    constructor() : this("", emptyMap(), 0, "")
+    constructor() : this("", emptyMap(), 0, "", "")
 }

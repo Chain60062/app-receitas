@@ -122,7 +122,8 @@ fun ReceitaCard(receita: Receita, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = "Modo de preparo: ${receita.modoPreparo}")
             Spacer(modifier = Modifier.height(8.dp))
-
+            Text(text = "Equipamentos: ${receita.descricaoEquipamentos()}")
+            Spacer(modifier = Modifier.height(8.dp))
             when (receita) {
                 is ReceitaBatedeira -> {
                     Text(
