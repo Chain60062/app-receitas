@@ -7,6 +7,6 @@ open class Receita(
     var tempoPreparo: Int = 0,
     var modoPreparo: String = ""
 ) {
-    // No-arg constructor for Firestore
+    //construtor vazio
     constructor() : this("", emptyMap(), 0, "")
 }

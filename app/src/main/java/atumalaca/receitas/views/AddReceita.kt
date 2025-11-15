@@ -12,19 +12,27 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,7 +42,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import atumalaca.receitas.repository.ReceitasRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddReceita(navController: NavController) {
     var nome by remember { mutableStateOf("") }
@@ -49,136 +60,161 @@ fun AddReceita(navController: NavController) {
     val tipos = listOf("Comum", "Forno", "Batedeira")
     val receitasRepository = remember { ReceitasRepository() }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Text("Adicionar Receita", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+    Scaffold (
+        topBar = {
+            TopAppBar(
+                title = { Text("Adicionar Receita") },
+                actions = {
+                    IconButton(onClick = { navController.navigate("ListAllReceitas") }) {
+                        Icon(Icons.Default.Home, contentDescription = "Home")
+                    }
 
-        Spacer(Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = nome,
-            onValueChange = { nome = it },
-            label = { Text("Nome da Receita") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = tempoPreparo,
-            onValueChange = { tempoPreparo = it.filter { c -> c.isDigit() } },
-            label = { Text("Tempo de Preparo (min)") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-
-        OutlinedTextField(
-            value = modoPreparo,
-            onValueChange = { modoPreparo = it },
-            label = { Text("Modo de Preparo") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        // Dropdown de tipo de receita
-        Box(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = tipoReceita,
-                onValueChange = { /* readOnly */ },
-                label = { Text("Tipo de Receita") },
-                readOnly = true,
-                trailingIcon = {
-                    IconButton(onClick = { expanded = !expanded }) {
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = "Abrir")
+                    IconButton(onClick = { navController.navigate("SobreOReceitas") }) {
+                        Icon(Icons.Default.Info, contentDescription = "Sobre o App")
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = true }
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                    }
+                }
+            )
+        }
+    ) { paddingValues -> //NOTA: remover o padding do scaffold resulta em erro do material theme 3
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues) // 👈 Aplicar o padding do Scaffold
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Spacer(Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = nome,
+                onValueChange = { nome = it },
+                label = { Text("Nome da Receita") },
+                modifier = Modifier.fillMaxWidth()
             )
 
-            // ⚡ Coloca o menu dentro do mesmo Box: ele vai aparecer logo abaixo do campo
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                tipos.forEach { tipo ->
-                    DropdownMenuItem(
-                        onClick = {
-                            tipoReceita = tipo
-                            expanded = false
-                        }, text = {Text(tipo)}
-                    )
+            OutlinedTextField(
+                value = tempoPreparo,
+                onValueChange = { tempoPreparo = it.filter { c -> c.isDigit() } },
+                label = { Text("Tempo de Preparo (min)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            OutlinedTextField(
+                value = modoPreparo,
+                onValueChange = { modoPreparo = it },
+                label = { Text("Modo de Preparo") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // Dropdown com box
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = tipoReceita,
+                    onValueChange = { /* readOnly */ },
+                    label = { Text("Tipo de Receita") },
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { expanded = !expanded }) {
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = "Abrir")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = true }
+                )
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    tipos.forEach { tipo ->
+                        DropdownMenuItem(
+                            onClick = {
+                                tipoReceita = tipo
+                                expanded = false
+                            }, text = {Text(tipo)}
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
 
-        // Campos específicos de cada tipo
-        if (tipoReceita == "Forno") {
-            OutlinedTextField(
-                value = temperatura,
-                onValueChange = { temperatura = it.filter { c -> c.isDigit() } },
-                label = { Text("Temperatura (°C)") },
+            // Campos específicos de cada tipo
+            if (tipoReceita == "Forno") {
+                OutlinedTextField(
+                    value = temperatura,
+                    onValueChange = { temperatura = it.filter { c -> c.isDigit() } },
+                    label = { Text("Temperatura (°C)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+
+                OutlinedTextField(
+                    value = tempoForno,
+                    onValueChange = { tempoForno = it.filter { c -> c.isDigit() } },
+                    label = { Text("Tempo de Forno (min)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            } else if(tipoReceita == "Batedeira"){
+                OutlinedTextField(
+                    value = tempoBatendo,
+                    onValueChange = { tempoBatendo = it.filter { c -> c.isDigit() } },
+                    label = { Text("Tempo Batendo (min)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            val scope = rememberCoroutineScope ()
+            Button(
+                onClick = {
+                    if (nome.isNotBlank() && tempoPreparo.isNotBlank() && modoPreparo.isNotBlank()) {
+                        scope.launch(Dispatchers.IO) {
+                            receitasRepository.salvarReceita(
+                                nome = nome,
+                                ingredientes = mapOf(),
+                                tempoPreparo = tempoPreparo.toInt(),
+                                modoPreparo = modoPreparo,
+                                tipo = tipoReceita.lowercase(),
+                                tempoForno = if (tipoReceita == "Forno") tempoForno.toIntOrNull() else null,
+                                temperatura = if (tipoReceita == "Forno") temperatura.toIntOrNull() else null,
+                                tempoBatendo = if (tipoReceita == "Batedeira") tempoBatendo.toIntOrNull() else null
+                            )
+
+                            scope.launch(Dispatchers.Main) {
+                                navController.navigate("ListAllReceitas")
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Salvar Receita")
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Button(
+                onClick = { navController.popBackStack() },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
-            OutlinedTextField(
-                value = tempoForno,
-                onValueChange = { tempoForno = it.filter { c -> c.isDigit() } },
-                label = { Text("Tempo de Forno (min)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-        } else if(tipoReceita == "Batedeira"){
-            OutlinedTextField(
-                value = tempoBatendo,
-                onValueChange = { tempoBatendo = it.filter { c -> c.isDigit() } },
-                label = { Text("Tempo Batendo (min)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                if (nome.isNotBlank() && tempoPreparo.isNotBlank() && modoPreparo.isNotBlank()) {
-                    receitasRepository.salvarReceita(
-                        nome = nome,
-                        ingredientes = mapOf(), // Pode abrir outra tela ou usar TextArea
-                        tempoPreparo = tempoPreparo.toInt(),
-                        modoPreparo = modoPreparo,
-                        tipo = tipoReceita.lowercase(),
-                        tempoForno = if (tipoReceita == "Forno") tempoForno.toIntOrNull() else null,
-                        temperatura = if (tipoReceita == "Forno") temperatura.toIntOrNull() else null,
-                        tempoBatendo = if (tipoReceita == "Batedeira") tempoBatendo.toIntOrNull() else null
-                    )
-
-                    navController.navigate("ListAllReceitas")
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Salvar Receita")
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        Button(
-            onClick = { navController.popBackStack() },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-        ) {
-            Text("Cancelar")
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+            ) {
+                Text("Cancelar")
+            }
         }
     }
 }

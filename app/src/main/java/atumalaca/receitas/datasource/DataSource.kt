@@ -50,23 +50,7 @@ class DataSource {
         receitasCollection.add(data)
     }
 
-
-    // Listar todas as receitas
-//    fun listarReceitas(): Flow<MutableList<Receita>> {
-//        val listaReceitas: MutableList<Receita> = mutableListOf()
-//
-//        receitasCollection.get().addOnCompleteListener { querySnapshot ->
-//            if (querySnapshot.isSuccessful) {
-//                for (document in querySnapshot.result) {
-//                    val receita = document.toObject(Receita::class.java)
-//                    listaReceitas.add(receita)
-//                    _todasReceitas.value = listaReceitas
-//                }
-//            }
-//        }
-//        return todasReceitas
-//    }
-    // DataSource.kt
+    //Lista todas as receitas
     fun listarReceitas(): Flow<MutableList<Receita>> = callbackFlow {
         val listener = receitasCollection.addSnapshotListener { snapshot, error ->
             if (error != null) {

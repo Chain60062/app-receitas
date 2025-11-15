@@ -12,10 +12,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,31 +47,42 @@ fun ListAllReceitas(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Minhas Receitas") })
+            TopAppBar(
+                title = { Text("Minhas Receitas") },
+                actions = {
+                    IconButton (onClick = { navController.navigate("ListAllReceitas") }) {
+                        Icon(Icons.Default.Home, contentDescription = "Home")
+                    }
+
+                    IconButton(onClick = { navController.navigate("SobreOReceitas") }) {
+                        Icon(Icons.Default.Info, contentDescription = "Sobre o App")
+                    }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate("AddReceita") }) {
                 Icon(Icons.Default.Add, contentDescription = "Adicionar Receita")
             }
         }
-    ) { padding ->
+    ) { paddingValues ->
         if (receitas.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
+                    .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Nenhuma receita adicionada ainda ☕")
+                Text("Nenhuma receita adicionada ainda")
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(paddingValues)
             ) {
                 items(receitas) { receita ->
-                    ReceitaCard(receita = receita) { /* handle click */ }
+                    ReceitaCard(receita = receita) { }
                 }
             }
         }
@@ -88,6 +102,9 @@ fun ReceitaCard(receita: Receita, onClick: () -> Unit) {
             Text(text = receita.nome, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = "Tempo de preparo: ${receita.tempoPreparo} min")
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = "Ingredientes e modo de preparo: ${receita.modoPreparo}")
+            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
