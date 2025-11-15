@@ -32,8 +32,4 @@ class ReceitasRepository {
             tempoBatendo = tempoBatendo
         )
     }
-
-    fun removerReceita(docId: String) {
-        dataSource.removerReceita(docId)
-    }
 }

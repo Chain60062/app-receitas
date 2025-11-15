@@ -2,11 +2,12 @@ package atumalaca.receitas.classes
 
 
 open class Receita(
-    var nome: String = "",
-    var ingredientes: Map<String, String> = emptyMap(),
-    var tempoPreparo: Int = 0,
-    var modoPreparo: String = ""
+    val nome: String = "",
+    val ingredientes: Map<String, String> = emptyMap(),
+    val tempoPreparo: Int = 0,
+    val modoPreparo: String = "",
+    var tipo: String = ""
 ) {
-    //construtor vazio
+    //construtor vazio, teste do firestore
     constructor() : this("", emptyMap(), 0, "")
 }
